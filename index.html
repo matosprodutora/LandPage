@@ -367,7 +367,7 @@
                 <p class="footer-tagline">Produção de Conteúdo Corporativo</p>
             </div>
             <div class="footer-social">
-                <a href="#">
+                <a href="https://www.instagram.com/valtemirfotografo/">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
                 </a>
                 <a href="#">
@@ -614,69 +614,108 @@
             }
         }
 
-        function handleFormSubmit() {
+function handleFormSubmit() {
     const submitBtn = document.getElementById('submitBtn');
     const successMessage = document.getElementById('successMessage');
     const form = document.getElementById('contactForm');
     
-    // Coletar dados do formulário
-    const formData = {
-        name: document.getElementById('name').value,
-        email: document.getElementById('email').value,
-        phone: document.getElementById('phone').value,
-        company: document.getElementById('company').value,
-        package: document.getElementById('package').value,
-        message: document.getElementById('message').value
+    // Coletar dados
+    const name = document.getElementById('name').value;
+    const email = document.getElementById('email').value;
+    const phone = document.getElementById('phone').value;
+    const company = document.getElementById('company').value;
+    const package = document.getElementById('package').value;
+    const message = document.getElementById('message').value;
+    
+    // Mapear pacotes
+    const packageMap = {
+        'essencial': 'Essencial - R$ 2.490',
+        'profissional': 'Profissional - R$ 4.990',
+        'premium': 'Premium - R$ 9.990',
+        'eventos': 'Cobertura de Eventos - R$ 3.990',
+        'enterprise': 'Enterprise - Sob consulta',
+        'personalizado': 'Orçamento Personalizado',
+        '': 'Não informado'
     };
     
-    // Mostrar estado de carregamento
+    // Criar email limpo
+    const emailContent = `
+NOVO CONTATO - MATOS|Produtora
+═══════════════════════════════════
+
+👤 DADOS DO CLIENTE
+────────────────────
+• Nome: ${name || 'Não informado'}
+• Email: ${email || 'Não informado'}
+• Telefone: ${phone || 'Não informado'}
+• Empresa: ${company || 'Não informado'}
+
+📦 PACOTE ESCOLHIDO
+───────────────────
+• ${packageMap[package] || 'Não selecionado'}
+
+💬 MENSAGEM
+────────────
+${message || 'Nenhuma mensagem adicional'}
+
+═══════════════════════════════════
+📅 Recebido em: ${new Date().toLocaleString('pt-BR')}
+🔗 Site: Matos|Produtora
+    `.trim();
+    
+    // Estado de carregamento
     submitBtn.innerHTML = 'Enviando...';
     submitBtn.disabled = true;
     
-    // 🔥 ALTERE AQUI O ENDEREÇO DE ENVIO:
-    const endpointURL = 'https://formsubmit.co/ajax/valtemirmatosfotografias@gmail.com'; // ← SUBSTITUA POR SUA URL
-    
-    // Enviar dados via Fetch API
-    fetch(endpointURL, {
+    // Enviar via FormSubmit
+    fetch('https://formsubmit.co/ajax/valtemirmatosfotografias@gmail.com', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({
+            _subject: '🎬 NOVO CONTATO - Matos|Produtora Website',
+            _replyto: email,
+            name: name,
+            email: email,
+            phone: phone,
+            company: company,
+            package: packageMap[package],
+            message: message,
+            _cc: 'valtemirmatosfotografias@gmail.com',
+            // Campo oculto com formatação limpa
+            _honey: emailContent // Usando _honey como campo extra para formatação
+        })
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Erro na resposta do servidor');
-        }
-        return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
-        // Sucesso
-        form.style.display = 'none';
-        successMessage.style.display = 'block';
-        
-        // Reset após 3 segundos
-        setTimeout(() => {
-            form.style.display = 'block';
-            successMessage.style.display = 'none';
-            form.reset();
-            submitBtn.innerHTML = `
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                Enviar Mensagem
-            `;
-            submitBtn.disabled = false;
-        }, 3000);
+        if (data.success === "true") {
+            form.style.display = 'none';
+            successMessage.style.display = 'block';
+            
+            setTimeout(() => {
+                form.style.display = 'block';
+                successMessage.style.display = 'none';
+                form.reset();
+                resetSubmitButton();
+            }, 3000);
+        } else {
+            throw new Error('Falha no envio');
+        }
     })
     .catch(error => {
-        // Erro
         console.error('Erro:', error);
-        alert('Erro ao enviar mensagem. Tente novamente.');
+        alert('Erro ao enviar. Tente novamente.');
+        resetSubmitButton();
+    });
+    
+    function resetSubmitButton() {
         submitBtn.innerHTML = `
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
             Enviar Mensagem
         `;
         submitBtn.disabled = false;
-    });
+    }
 }
     </script>
 </body>
